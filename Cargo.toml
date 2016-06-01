@@ -1,0 +1,8 @@
+[package]
+name = "rayblaster"
+version = "0.1.0"
+authors = ["Harvey Hunt <harveyhuntnexus@gmail.com>"]
+
+[dependencies]
+cgmath = "0.9.1"
+image = "0.10.0"
