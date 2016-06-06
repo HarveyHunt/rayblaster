@@ -26,5 +26,9 @@ fn main() {
         Err(_) => panic!("Failed to load scene {}", scene_name),
     }
 
+    if scene.primitives.len() == 0 {
+        panic!("No primitives in {}", scene_name);
+    }
+
     render(&mut image, scene, WIDTH, HEIGHT, FOV);
 }
