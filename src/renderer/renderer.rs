@@ -29,5 +29,15 @@ pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: us
 }
 
 pub fn trace(ray: Ray, scene: &Scene) -> Vector3<u8> {
-    Vector3::new(0, 0, 0)
+    let mut t: f64;
+    let mut colour = Vector3::new(0, 0, 0);
+
+    for prim in scene.primitives.iter() {
+        t = prim.intersect(&ray);
+        if t > 0.0 {
+            colour = prim.colour();
+        }
+    }
+
+    colour
 }
