@@ -1,6 +1,8 @@
 use scenes::Scene;
 use cgmath::{Vector3, InnerSpace};
-use renderer::{Ray, RayType};
+use renderer::{Ray, RayType, Intersection};
+use primitives::Primitive;
+use std::f64::INFINITY;
 
 const MAX_DEPTH: u32 = 5;
 
@@ -29,15 +31,38 @@ pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: us
 }
 
 pub fn trace(ray: Ray, scene: &Scene) -> Vector3<u8> {
-    let mut t: f64;
     let mut colour = Vector3::new(0, 0, 0);
+    let prim: &Box<Primitive>;
+    let int: Intersection;
+
+    match trace_primary(ray, scene) {
+        Some((i, p)) => {
+            int = i;
+            prim = p
+        }
+        None => return colour,
+    };
+
+    // Just assume it is a diffuse material...
+    prim.colour()
+}
+
+// TODO: All of this boxiness feels gross...
+fn trace_primary(ray: Ray, scene: &Scene) -> Option<(Intersection, &Box<Primitive>)> {
+    let mut tnear: f64 = INFINITY;
+    let mut result: Option<(Intersection, &Box<Primitive>)> = None;
 
     for prim in scene.primitives.iter() {
-        t = prim.intersect(&ray);
-        if t > 0.0 {
-            colour = prim.colour();
-        }
+        match prim.intersect(&ray) {
+            Some(int) => {
+                if int.distance < tnear {
+                    tnear = int.distance;
+                    result = Some((int, prim))
+                }
+            }
+            None => {}
+        };
     }
 
-    colour
+    result
 }
