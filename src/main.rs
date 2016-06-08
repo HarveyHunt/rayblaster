@@ -1,30 +1,55 @@
 extern crate cgmath;
 extern crate image;
+extern crate argparse;
 
 mod renderer;
 mod primitives;
 mod lights;
 mod scenes;
 
-use std::path::Path;
+use argparse::{ArgumentParser, Store, Print, Parse};
+use std::path::PathBuf;
 use scenes::{scene_lookup, Scene};
 use renderer::render;
 use cgmath::Vector3;
 use image::{save_buffer, ColorType};
 
-// TODO: Get this from user input
-const WIDTH: usize = 640;
-const HEIGHT: usize = 480;
-const FOV: f64 = 80.0;
-
 fn main() {
-    let mut image: [Vector3<u8>; WIDTH * HEIGHT] = [Vector3::new(0, 0, 0); WIDTH * HEIGHT];
     let scene: Scene;
-    // TODO: Get this from user input
-    let scene_name = "sphere";
-    let mut buffer = &mut [0; WIDTH * HEIGHT * 3];
+    let mut image_path = PathBuf::new();
+    let mut scene_name = String::new();
+    let mut width: usize = 0;
+    let mut height: usize = 0;
+    let mut fov: f64 = 0.0;
 
-    match scene_lookup(scene_name) {
+    {
+        let mut parser = ArgumentParser::new();
+        parser.set_description("A raytracer written in Rust");
+        parser.add_option(&["-v", "--version"],
+                          Print(format!("rayblaster: v{}", env!("CARGO_PKG_VERSION"))),
+                          "Show version");
+        parser.refer(&mut image_path)
+            .add_option(&["-o", "--output"], Parse, "Place the output into <file>")
+            .required();
+        parser.refer(&mut scene_name)
+            .add_option(&["-s", "--scene"], Store, "The scene to render")
+            .required();
+        parser.refer(&mut width)
+            .add_option(&["-w", "--width"], Store, "The width of the output image")
+            .required();
+        parser.refer(&mut height)
+            .add_option(&["-h", "--height"], Store, "The height of the output image")
+            .required();
+        parser.refer(&mut fov)
+            .add_option(&["-f", "--fov"], Store, "The fov of the output image")
+            .required();
+        parser.parse_args_or_exit();
+    }
+
+    let mut image = vec![Vector3::new(0, 0, 0); width * height].into_boxed_slice();
+    let mut buffer = vec![0; width * height * 3].into_boxed_slice();
+
+    match scene_lookup(&scene_name) {
         Ok(s) => scene = s,
         Err(_) => panic!("Failed to load scene {}", scene_name),
     }
@@ -33,7 +58,7 @@ fn main() {
         panic!("No primitives in {}", scene_name);
     }
 
-    render(&mut image, scene, WIDTH, HEIGHT, FOV);
+    render(&mut image, scene, width, height, fov);
 
     for (i, pixel) in image.iter().enumerate() {
         buffer[i * 3] = pixel.x;
@@ -41,10 +66,9 @@ fn main() {
         buffer[i * 3 + 2] = pixel.z;
     }
 
-    // TODO: Get the filename from user input
-    save_buffer(&Path::new("/tmp/test.png"),
-                buffer,
-                WIDTH as u32,
-                HEIGHT as u32,
+    save_buffer(image_path,
+                &buffer,
+                width as u32,
+                height as u32,
                 image::RGB(8));
 }

@@ -6,3 +6,4 @@ authors = ["Harvey Hunt <harveyhuntnexus@gmail.com>"]
 [dependencies]
 cgmath = "0.9.1"
 image = "0.10.0"
+argparse = "0.2.1"
