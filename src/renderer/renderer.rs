@@ -44,6 +44,10 @@ pub fn trace(ray: Ray, scene: &Scene) -> Vector3<u8> {
     };
 
     // Just assume it is a diffuse material...
+    //
+    // TODO: We can either loop through all of the lights
+    // in the scene and see which hits our diffuse material, or we can fire rays out in a
+    // hemisphere...
     prim.colour()
 }
 
