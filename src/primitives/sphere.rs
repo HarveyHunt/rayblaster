@@ -45,9 +45,11 @@ impl Primitive for Sphere {
         }
 
         let pos = ray.origin + ray.direction * t0;
+        let normal = pos - self.pos;
 
         Some(Intersection {
             pos: pos,
+            normal: normal,
             distance: t0,
         })
     }
