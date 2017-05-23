@@ -1,23 +1,39 @@
 use cgmath::Vector3;
 use scenes::Scene;
+use materials::DiffuseMaterial;
 use primitives::{Primitive, Sphere};
-use lights::Light;
+use lights::{Light, SphericalLight};
 
 pub fn get_scene() -> Scene {
     let mut prims: Vec<Box<Primitive>> = Vec::new();
-    prims.push(Box::new(Sphere::new(Vector3::new(30.0, 10.0, -50.0),
-                                    3.5,
-                                    Vector3::new(0xFF, 0x00, 0))));
 
-    prims.push(Box::new(Sphere::new(Vector3::new(-20.0, 10.0, -50.0),
-                                    7.0,
-                                    Vector3::new(0x00, 0xFF, 0x00))));
+    prims.push(Box::new(Sphere {
+        center: Vector3::new(30.0, 10.0, -50.0),
+        radius: 3.5,
+        material: Box::new(DiffuseMaterial { colour: Vector3::new(1.0, 0.0, 0.0) }),
+    }));
 
-    prims.push(Box::new(Sphere::new(Vector3::new(-30.0, 70.0, -150.0),
-                                    15.0,
-                                    Vector3::new(0x00, 0x00, 0xFF))));
+    prims.push(Box::new(Sphere {
+        center: Vector3::new(-20.0, 10.0, -50.0),
+        radius: 7.0,
+        material: Box::new(DiffuseMaterial { colour: Vector3::new(0.0, 1.0, 0.0) }),
+    }));
+
+    prims.push(Box::new(Sphere {
+        center: Vector3::new(-30.0, 70.0, -150.0),
+        radius: 15.0,
+        material: Box::new(DiffuseMaterial { colour: Vector3::new(1.0, 1.0, 1.0) }),
+    }));
+
+    let mut ls: Vec<Box<Light>> = Vec::new();
+    ls.push(Box::new(SphericalLight {
+        center: Vector3::new(10.0, 10.0, 10.0),
+        colour: Vector3::new(1.0, 1.0, 1.0),
+    }));
+
+
     Scene {
-        lights: Vec::new(),
+        lights: ls,
         primitives: prims,
     }
 }

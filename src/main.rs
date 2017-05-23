@@ -6,6 +6,7 @@ mod renderer;
 mod primitives;
 mod lights;
 mod scenes;
+mod materials;
 
 use argparse::{ArgumentParser, Store, Print, Parse};
 use std::path::PathBuf;

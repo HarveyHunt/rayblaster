@@ -24,14 +24,17 @@ pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: us
             let ray = Ray::new(origin, dir, MAX_DEPTH, RayType::Primary);
 
             let colour = trace(ray, &scene);
-            buffer[pixel] = colour;
+
+            buffer[pixel] = Vector3::new((colour.x * 255.0) as u8,
+                                         (colour.y * 255.0) as u8,
+                                         (colour.z * 255.0) as u8);
             pixel += 1;
         }
     }
 }
 
-pub fn trace(ray: Ray, scene: &Scene) -> Vector3<u8> {
-    let mut colour = Vector3::new(0, 0, 0);
+pub fn trace(ray: Ray, scene: &Scene) -> Vector3<f64> {
+    let mut colour = Vector3::new(0.0, 0.0, 0.0);
     let prim: &Box<Primitive>;
     let int: Intersection;
 
@@ -43,12 +46,14 @@ pub fn trace(ray: Ray, scene: &Scene) -> Vector3<u8> {
         None => return colour,
     };
 
-    // Just assume it is a diffuse material...
-    //
-    // TODO: We can either loop through all of the lights
-    // in the scene and see which hits our diffuse material, or we can fire rays out in a
-    // hemisphere...
-    prim.colour()
+    let mut col: Vector3<f64> =
+        scene.lights.iter().fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
+            let l = (light.center() - int.pos).normalize();
+            // TODO: Mix the light's colour in.
+            acc + int.material.sample(int.normal.normalize(), ray.direction, l)
+        });
+
+    col
 }
 
 // TODO: All of this boxiness feels gross...

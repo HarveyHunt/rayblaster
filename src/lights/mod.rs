@@ -1,6 +1,10 @@
+pub mod spherical_light;
+
 use cgmath::Vector3;
 
+pub use self::spherical_light::SphericalLight;
+
 pub trait Light {
-    fn pos(&self) -> Vector3<f64>;
+    fn center(&self) -> Vector3<f64>;
     fn colour(&self) -> Vector3<f64>;
 }

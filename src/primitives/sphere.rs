@@ -1,30 +1,19 @@
+use materials::Material;
 use cgmath::{Vector3, InnerSpace};
 use primitives::Primitive;
 use renderer::{Ray, Intersection};
 use std::f64::INFINITY;
 
-#[derive(Clone)]
 pub struct Sphere {
-    pos: Vector3<f64>,
-    radius: f64,
-    // TODO: Replace a flat colour with a material
-    colour: Vector3<u8>,
-}
-
-impl Sphere {
-    pub fn new(pos: Vector3<f64>, radius: f64, colour: Vector3<u8>) -> Sphere {
-        Sphere {
-            pos: pos,
-            radius: radius,
-            colour: colour,
-        }
-    }
+    pub center: Vector3<f64>,
+    pub radius: f64,
+    pub material: Box<Material>,
 }
 
 impl Primitive for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<Intersection> {
         let r_squared = self.radius.powi(2);
-        let l = self.pos - ray.origin;
+        let l = self.center - ray.origin;
         let tca = l.dot(ray.direction);
         if tca < 0.0 {
             return None;
@@ -45,16 +34,13 @@ impl Primitive for Sphere {
         }
 
         let pos = ray.origin + ray.direction * t0;
-        let normal = pos - self.pos;
+        let normal = pos - self.center;
 
         Some(Intersection {
             pos: pos,
             normal: normal,
             distance: t0,
+            material: &self.material,
         })
-    }
-
-    fn colour(&self) -> Vector3<u8> {
-        self.colour
     }
 }

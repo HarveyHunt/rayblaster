@@ -7,5 +7,4 @@ pub use self::sphere::Sphere;
 
 pub trait Primitive {
     fn intersect(&self, ray: &Ray) -> Option<Intersection>;
-    fn colour(&self) -> Vector3<u8>;
 }
