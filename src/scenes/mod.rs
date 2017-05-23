@@ -1,4 +1,4 @@
-pub mod sphere;
+pub mod spheres;
 
 use primitives::Primitive;
 use lights::Light;
@@ -10,7 +10,7 @@ pub struct Scene {
 
 pub fn scene_lookup(name: &str) -> Result<Scene, &'static str> {
     match name {
-        "sphere" => Ok((sphere::get_scene())),
+        "spheres" => Ok((spheres::get_scene())),
         _ => Err("Failed to load scene"),
     }
 }
