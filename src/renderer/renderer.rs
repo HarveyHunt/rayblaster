@@ -1,5 +1,5 @@
 use scenes::Scene;
-use cgmath::{Vector3, InnerSpace};
+use cgmath::{Vector3, InnerSpace, ElementWise};
 use renderer::{Ray, RayType, Intersection};
 use primitives::Primitive;
 use std::f64::INFINITY;
@@ -50,9 +50,12 @@ pub fn trace(ray: Ray, scene: &Scene) -> Vector3<f64> {
         scene.lights.iter().fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
             let l = (light.center() - int.pos).normalize();
             let shadow_ray = Ray::new(int.pos, l, 1, RayType::Shadow);
-            // TODO: Mix the light's colour in.
+
             if !trace_shadow(shadow_ray, scene) {
-                acc + int.material.sample(int.normal.normalize(), ray.direction, l)
+                acc +
+                int.material
+                    .sample(int.normal.normalize(), ray.direction, l)
+                    .mul_element_wise(light.colour())
             } else {
                 acc
             }
