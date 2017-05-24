@@ -14,7 +14,7 @@ pub fn get_scene() -> Scene {
     }));
 
     prims.push(Box::new(Sphere {
-        center: Vector3::new(-20.0, 10.0, -50.0),
+        center: Vector3::new(-15.0, 30.0, -50.0),
         radius: 7.0,
         material: Box::new(DiffuseMaterial { colour: Vector3::new(0.0, 1.0, 0.0) }),
     }));
@@ -22,12 +22,18 @@ pub fn get_scene() -> Scene {
     prims.push(Box::new(Sphere {
         center: Vector3::new(-30.0, 70.0, -150.0),
         radius: 15.0,
+        material: Box::new(DiffuseMaterial { colour: Vector3::new(0.0, 0.0, 1.0) }),
+    }));
+
+    prims.push(Box::new(Sphere {
+        center: Vector3::new(0.0, 50.0, -150.0),
+        radius: 25.0,
         material: Box::new(DiffuseMaterial { colour: Vector3::new(1.0, 1.0, 1.0) }),
     }));
 
     let mut ls: Vec<Box<Light>> = Vec::new();
     ls.push(Box::new(SphericalLight {
-        center: Vector3::new(10.0, 10.0, 10.0),
+        center: Vector3::new(-25.0, 10.0, -10.0),
         colour: Vector3::new(1.0, 1.0, 1.0),
     }));
 

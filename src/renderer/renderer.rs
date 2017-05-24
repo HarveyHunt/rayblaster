@@ -49,11 +49,25 @@ pub fn trace(ray: Ray, scene: &Scene) -> Vector3<f64> {
     let mut col: Vector3<f64> =
         scene.lights.iter().fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
             let l = (light.center() - int.pos).normalize();
+            let shadow_ray = Ray::new(int.pos, l, 1, RayType::Shadow);
             // TODO: Mix the light's colour in.
-            acc + int.material.sample(int.normal.normalize(), ray.direction, l)
+            if !trace_shadow(shadow_ray, scene) {
+                acc + int.material.sample(int.normal.normalize(), ray.direction, l)
+            } else {
+                acc
+            }
         });
 
     col
+}
+
+// TODO: Once translucent objects are implemented, hitting one will modify the colour of
+// primitive we are checking shadows for.
+fn trace_shadow(ray: Ray, scene: &Scene) -> bool {
+    match trace_primary(ray, scene) {
+        Some((int, prim)) => true,
+        None => false,
+    }
 }
 
 // TODO: All of this boxiness feels gross...

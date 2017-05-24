@@ -4,6 +4,7 @@ use cgmath::Vector3;
 pub enum RayType {
     // TODO: Add more types so that we can count stats
     Primary,
+    Shadow,
 }
 
 #[derive(Clone, Copy)]
