@@ -49,7 +49,10 @@ pub fn trace(ray: Ray, scene: &Scene) -> Vector3<f64> {
     let mut col: Vector3<f64> =
         scene.lights.iter().fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
             let l = (light.center() - int.pos).normalize();
-            let shadow_ray = Ray::new(int.pos, l, 1, RayType::Shadow);
+            // Add a bias to prevent shadow acne.
+            // TODO: Experiment to find a good value.
+            let bias = Vector3::new(1e-6, 1e-6, 1e-6);
+            let shadow_ray = Ray::new(int.pos + bias, l, 1, RayType::Shadow);
 
             if !trace_shadow(shadow_ray, scene) {
                 acc +
