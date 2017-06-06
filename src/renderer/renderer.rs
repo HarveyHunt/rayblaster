@@ -18,7 +18,7 @@ pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: us
     for y in 0..height {
         for x in 0..width {
             let cx = (2.0 * ((x as f64 + 0.5) * inv_width) - 1.0) * aspect_ratio * scale;
-            let cy = (1.0 - 2.0 * ((y as f64 * 0.5) * inv_height)) * scale;
+            let cy = (1.0 - 2.0 * ((y as f64 + 0.5) * inv_height)) * scale;
 
             let dir = Vector3::new(cx, cy, -1.0).normalize();
             let ray = Ray::new(origin, dir, MAX_DEPTH, RayType::Primary);
