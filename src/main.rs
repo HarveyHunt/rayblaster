@@ -10,6 +10,7 @@ mod materials;
 
 use argparse::{ArgumentParser, Store, Print, Parse};
 use std::path::PathBuf;
+use std::time::Instant;
 use scenes::{scene_lookup, Scene};
 use renderer::render;
 use cgmath::Vector3;
@@ -59,7 +60,12 @@ fn main() {
         panic!("No primitives in {}", scene_name);
     }
 
+    let t = Instant::now();
+
     render(&mut image, scene, width, height, fov);
+
+    println!("Rendered in {}ms",
+             (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64);
 
     for (i, pixel) in image.iter().enumerate() {
         buffer[i * 3] = pixel.x;
