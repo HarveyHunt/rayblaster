@@ -11,11 +11,14 @@ pub struct SpecularMaterial {
 }
 
 impl Material for SpecularMaterial {
-    fn sample(&self, hit_normal: Vector3<f64>, ray_dir: Vector3<f64>, l: Vector3<f64>) -> Vector3<f64> {
+    fn sample(&self,
+              hit_normal: Vector3<f64>,
+              ray_dir: Vector3<f64>,
+              l: Vector3<f64>)
+              -> Vector3<f64> {
         let half = (l + -ray_dir).normalize();
 
-        let diffuse = 
-        if hit_normal.dot(l) > 0.0 {
+        let diffuse = if hit_normal.dot(l) > 0.0 {
             self.diff_colour * self.k_diff * hit_normal.dot(l)
         } else {
             Vector3::new(0.0, 0.0, 0.0)
