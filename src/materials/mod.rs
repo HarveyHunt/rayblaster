@@ -1,9 +1,7 @@
-pub mod diffuse;
 pub mod specular;
 
 use cgmath::Vector3;
 
-pub use self::diffuse::DiffuseMaterial;
 pub use self::specular::SpecularMaterial;
 
 pub trait Material {
