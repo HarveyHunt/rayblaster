@@ -43,6 +43,11 @@ pub fn get_scene() -> Scene {
         colour: Vector3::new(1.0, 1.0, 1.0),
     }));
 
+    ls.push(Box::new(SphericalLight {
+        center: Vector3::new(-20.0, 10.0, -50.0),
+        colour: Vector3::new(1.0, 1.0, 1.0),
+    }));
+
     Scene {
         lights: ls,
         primitives: prims,
