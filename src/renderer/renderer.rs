@@ -3,8 +3,19 @@ use cgmath::{Vector3, InnerSpace, ElementWise};
 use renderer::{Ray, RayType, Intersection};
 use primitives::Primitive;
 use std::f64::INFINITY;
+use std::cmp::{max, min, Ord};
 
 const MAX_DEPTH: u32 = 5;
+
+fn clamp<T: Ord>(val: T, minimum: T, maximum: T) -> T {
+    max(minimum, min(val, maximum))
+}
+
+fn clamp_colour(colour: Vector3<f64>) -> Vector3<u8> {
+    Vector3::new(clamp((colour.x * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+                 clamp((colour.y * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+                 clamp((colour.z * 255.0) as u32, 0, u8::max_value() as u32) as u8)
+}
 
 pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: usize, fov: f64) {
     let mut pixel = 0;
@@ -25,9 +36,7 @@ pub fn render(buffer: &mut [Vector3<u8>], scene: Scene, width: usize, height: us
 
             let colour = trace(ray, &scene);
 
-            buffer[pixel] = Vector3::new((colour.x * 255.0) as u8,
-                                         (colour.y * 255.0) as u8,
-                                         (colour.z * 255.0) as u8);
+            buffer[pixel] = clamp_colour(colour);
             pixel += 1;
         }
     }
