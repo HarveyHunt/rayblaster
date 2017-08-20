@@ -12,7 +12,7 @@ use argparse::{ArgumentParser, Store, Print, Parse};
 use std::path::PathBuf;
 use std::time::Instant;
 use scenes::{scene_lookup, Scene};
-use renderer::render;
+use renderer::Renderer;
 use cgmath::Vector3;
 use image::{save_buffer, ColorType};
 
@@ -61,8 +61,8 @@ fn main() {
     }
 
     let t = Instant::now();
-
-    render(&mut image, scene, width, height, fov);
+    let renderer = Renderer::new(width, height, 32, scene, fov);
+    renderer.render(&mut image);
 
     println!("Rendered in {}ms",
              (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64);
