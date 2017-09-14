@@ -15,8 +15,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 use scenes::{scene_lookup, Scene};
 use renderer::Renderer;
-use cgmath::Vector3;
-use image::{save_buffer, ColorType};
+use image::save_buffer;
 
 fn main() {
     let scene: Scene;
@@ -60,7 +59,7 @@ fn main() {
         Err(_) => panic!("Failed to load scene {}", scene_name),
     }
 
-    if scene.primitives.len() == 0 {
+    if scene.primitives.is_empty() {
         panic!("No primitives in {}", scene_name);
     }
 

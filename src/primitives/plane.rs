@@ -2,7 +2,6 @@ use materials::Material;
 use cgmath::{Vector3, InnerSpace};
 use primitives::Primitive;
 use renderer::{Ray, Intersection};
-use std::f64::INFINITY;
 
 pub struct Plane {
     pub center: Vector3<f64>,
