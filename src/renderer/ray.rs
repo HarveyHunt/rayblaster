@@ -24,4 +24,13 @@ impl Ray {
             t: t,
         }
     }
+
+    pub fn from_origin(direction: Vector3<f64>, depth: u32, t: RayType) -> Ray {
+        Ray {
+            origin: Vector3::new(0.0, 0.0, 0.0),
+            direction: direction,
+            depth: depth,
+            t: t,
+        }
+    }
 }
