@@ -7,7 +7,7 @@ use std::f64::INFINITY;
 pub struct Sphere {
     pub center: Vector3<f64>,
     pub radius: f64,
-    pub material: Box<Material>,
+    pub material: Box<Material + Sync>,
 }
 
 impl Primitive for Sphere {

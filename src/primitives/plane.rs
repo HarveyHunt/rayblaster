@@ -7,7 +7,7 @@ use std::f64::INFINITY;
 pub struct Plane {
     pub center: Vector3<f64>,
     pub normal: Vector3<f64>,
-    pub material: Box<Material>,
+    pub material: Box<Material + Sync>,
 }
 
 impl Primitive for Plane {

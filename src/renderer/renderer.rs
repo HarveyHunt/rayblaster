@@ -1,8 +1,10 @@
 use scenes::Scene;
+use crossbeam;
 use cgmath::{Vector3, InnerSpace, ElementWise};
 use renderer::{Ray, RayType, Intersection};
 use primitives::Primitive;
 use std::f64::INFINITY;
+use std::iter::repeat;
 use std::cmp::{max, min, Ord};
 
 const MAX_DEPTH: u32 = 5;
@@ -36,19 +38,31 @@ impl Renderer {
         }
     }
 
-    pub fn render(&self, frame: &mut [Vector3<u8>]) {
+    pub fn render(&self) -> Vec<Vector3<u8>> {
         // Split in width factored chunks in order to remain cache friendly.
         // FIXME: This will break with weird sizes that cause a fractional
         // chunk_size.
         //
         // We should be ensuring that an x offset never needs to be applied due to
         // remaining pixels to be processed
+        let mut frame: Vec<Vector3<u8>> =
+            repeat(Vector3::new(0, 0, 0)).take(self.width * self.height).collect();
+
         let chunk_size = (self.height / self.workers) * self.width;
         let mut i = 0;
-        for chunk in frame.chunks_mut(chunk_size) {
-            self.render_chunk(chunk, self.width, self.height / self.workers, 0, i);
-            i += self.height / self.workers;
-        }
+
+        println!("Rendering using {} workers", self.workers);
+
+        crossbeam::scope(|scope| {
+            for chunk in frame.chunks_mut(chunk_size) {
+                scope.spawn(move || {
+                    self.render_chunk(chunk, self.width, self.height / self.workers, 0, i)
+                });
+                i += self.height / self.workers;
+            }
+        });
+
+        frame
     }
 
     pub fn render_chunk(&self,
@@ -85,7 +99,7 @@ impl Renderer {
 
     pub fn trace(&self, ray: Ray) -> Vector3<f64> {
         let mut colour = Vector3::new(0.0, 0.0, 0.0);
-        let prim: &Box<Primitive>;
+        let prim: &Box<Primitive + Sync>;
         let int: Intersection;
 
         match self.trace_primary(ray) {
@@ -127,9 +141,9 @@ impl Renderer {
     }
 
     // TODO: All of this boxiness feels gross...
-    fn trace_primary(&self, ray: Ray) -> Option<(Intersection, &Box<Primitive>)> {
+    fn trace_primary(&self, ray: Ray) -> Option<(Intersection, &Box<Primitive + Sync>)> {
         let mut tnear: f64 = INFINITY;
-        let mut result: Option<(Intersection, &Box<Primitive>)> = None;
+        let mut result: Option<(Intersection, &Box<Primitive + Sync>)> = None;
 
         for prim in self.scene.primitives.iter() {
             match prim.intersect(&ray) {

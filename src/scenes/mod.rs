@@ -4,8 +4,8 @@ use primitives::Primitive;
 use lights::Light;
 
 pub struct Scene {
-    pub lights: Vec<Box<Light>>,
-    pub primitives: Vec<Box<Primitive>>,
+    pub lights: Vec<Box<Light + Sync>>,
+    pub primitives: Vec<Box<Primitive + Sync>>,
 }
 
 pub fn scene_lookup(name: &str) -> Result<Scene, &'static str> {

@@ -1,4 +1,5 @@
 extern crate cgmath;
+extern crate crossbeam;
 extern crate image;
 extern crate argparse;
 
@@ -48,7 +49,6 @@ fn main() {
         parser.parse_args_or_exit();
     }
 
-    let mut image = vec![Vector3::new(0, 0, 0); width * height].into_boxed_slice();
     let mut buffer = vec![0; width * height * 3].into_boxed_slice();
 
     match scene_lookup(&scene_name) {
@@ -62,12 +62,12 @@ fn main() {
 
     let t = Instant::now();
     let renderer = Renderer::new(width, height, 32, scene, fov);
-    renderer.render(&mut image);
+    let frame = renderer.render();
 
     println!("Rendered in {}ms",
              (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64);
 
-    for (i, pixel) in image.iter().enumerate() {
+    for (i, pixel) in frame.iter().enumerate() {
         buffer[i * 3] = pixel.x;
         buffer[i * 3 + 1] = pixel.y;
         buffer[i * 3 + 2] = pixel.z;
