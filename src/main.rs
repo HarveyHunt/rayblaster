@@ -1,6 +1,7 @@
 extern crate cgmath;
 extern crate crossbeam;
 extern crate image;
+extern crate num_cpus;
 extern crate argparse;
 
 mod renderer;
@@ -24,6 +25,7 @@ fn main() {
     let mut width: usize = 0;
     let mut height: usize = 0;
     let mut fov: f64 = 0.0;
+    let mut workers = num_cpus::get();
 
     {
         let mut parser = ArgumentParser::new();
@@ -46,6 +48,8 @@ fn main() {
         parser.refer(&mut fov)
             .add_option(&["-f", "--fov"], Store, "The fov of the output image")
             .required();
+        parser.refer(&mut workers)
+            .add_option(&["-t", "--threads"], Store, "The number of worker threads to spawn");
         parser.parse_args_or_exit();
     }
 
@@ -61,7 +65,7 @@ fn main() {
     }
 
     let t = Instant::now();
-    let renderer = Renderer::new(width, height, 32, scene, fov);
+    let renderer = Renderer::new(width, height, workers, scene, fov);
     let frame = renderer.render();
 
     println!("Rendered in {}ms",
