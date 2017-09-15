@@ -11,9 +11,9 @@ pub fn get_scene() -> Scene {
         center: Vector3::new(0.0, -5.0, 0.0),
         normal: Vector3::new(0.0, 1.0, 0.0),
         material: Box::new(SpecularMaterial {
-            k_diff: 0.0,
-            k_spec: 1.0,
-            shininess: 20.0,
+            k_diff: 0.10,
+            k_spec: 0.4,
+            shininess: 5.0,
             diff_colour: Vector3::new(1.0, 1.0, 1.0),
             spec_colour: Vector3::new(1.0, 1.0, 1.0),
         }),
@@ -71,6 +71,11 @@ pub fn get_scene() -> Scene {
     ls.push(Box::new(SphericalLight {
         center: Vector3::new(25.0, 20.0, 10.0),
         colour: Vector3::new(1.0, 1.0, 1.0),
+    }));
+
+    ls.push(Box::new(SphericalLight {
+        center: Vector3::new(0.0, 30.0, 5.0),
+        colour: Vector3::new(0.0, 1.0, 0.0),
     }));
 
     ls.push(Box::new(SphericalLight {
