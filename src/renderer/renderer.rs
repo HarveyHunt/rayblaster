@@ -143,11 +143,13 @@ impl Renderer {
         let mut result: Option<(Intersection, &Box<Primitive + Sync>)> = None;
 
         for prim in &self.scene.primitives {
-            if let Some(int) = prim.intersect(&ray) {
-                if int.distance < tnear {
-                    tnear = int.distance;
-                    result = Some((int, prim))
-                }
+            if prim.fast_intersect(&ray) {
+                if let Some(int) = prim.intersect(&ray) {
+                    if int.distance < tnear {
+                        tnear = int.distance;
+                        result = Some((int, prim))
+                    }
+                };
             };
         }
 

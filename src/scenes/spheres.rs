@@ -19,53 +19,53 @@ pub fn get_scene() -> Scene {
         }),
     }));
 
-    prims.push(Box::new(Sphere {
-        center: Vector3::new(-10.0, 10.0, -25.0),
-        radius: 2.0,
-        material: Box::new(SpecularMaterial {
+    prims.push(Box::new(Sphere::new(
+        Vector3::new(-10.0, 10.0, -25.0),
+        2.0,
+        Box::new(SpecularMaterial {
             k_diff: 0.6,
             k_spec: 0.4,
             shininess: 10.0,
             diff_colour: Vector3::new(1.0, 0.0, 1.0),
             spec_colour: Vector3::new(1.0, 1.0, 1.0),
         }),
-    }));
+    )));
 
-    prims.push(Box::new(Sphere {
-        center: Vector3::new(0.0, 0.0, -10.0),
-        radius: 2.0,
-        material: Box::new(SpecularMaterial {
+    prims.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 0.0, -10.0),
+        2.0,
+        Box::new(SpecularMaterial {
             k_diff: 0.3,
             k_spec: 0.7,
             shininess: 10.0,
             diff_colour: Vector3::new(0.0, 0.0, 1.0),
             spec_colour: Vector3::new(1.0, 1.0, 1.0),
         }),
-    }));
+    )));
 
-    prims.push(Box::new(Sphere {
-        center: Vector3::new(7.0, 8.0, -15.0),
-        radius: 3.0,
-        material: Box::new(SpecularMaterial {
+    prims.push(Box::new(Sphere::new( 
+        Vector3::new(7.0, 8.0, -15.0),
+        3.0,
+        Box::new(SpecularMaterial {
             k_diff: 0.7,
             k_spec: 0.4,
             shininess: 10.0,
             diff_colour: Vector3::new(0.0, 0.0, 1.0),
             spec_colour: Vector3::new(1.0, 1.0, 1.0),
         }),
-    }));
+    )));
 
-    prims.push(Box::new(Sphere {
-        center: Vector3::new(-12.0, 7.0, -15.0),
-        radius: 1.5,
-        material: Box::new(SpecularMaterial {
+    prims.push(Box::new(Sphere::new(
+        Vector3::new(-12.0, 7.0, -15.0),
+        1.5,
+        Box::new(SpecularMaterial {
             k_diff: 0.3,
             k_spec: 0.7,
             shininess: 10.0,
             diff_colour: Vector3::new(1.0, 0.0, 0.0),
             spec_colour: Vector3::new(1.0, 1.0, 1.0),
         }),
-    }));
+    )));
 
     let mut ls: Vec<Box<Light + Sync>> = Vec::new();
     ls.push(Box::new(SphericalLight {

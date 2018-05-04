@@ -28,4 +28,8 @@ impl Primitive for Plane {
             material: &self.material,
         })
     }
+
+    fn fast_intersect(&self, ray: &Ray) -> bool {
+        true
+    }
 }

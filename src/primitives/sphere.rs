@@ -1,12 +1,39 @@
 use materials::Material;
 use cgmath::{Vector3, InnerSpace};
-use primitives::Primitive;
+use primitives::{Primitive, AABB, BoundingVolume};
 use renderer::{Ray, Intersection};
 
 pub struct Sphere {
     pub center: Vector3<f64>,
     pub radius: f64,
     pub material: Box<Material + Sync>,
+    aabb: AABB,
+}
+
+impl Sphere {
+    pub fn new(center: Vector3<f64>, radius: f64, mat: Box<Material + Sync>) -> Sphere {
+        Sphere {
+            center: center,
+            radius: radius,
+            material: mat,
+            aabb: calc_aabb(center, radius),
+        }
+    }
+}
+
+fn calc_aabb(center: Vector3<f64>, radius: f64) -> AABB {
+    AABB {
+        min_bound: Vector3 {
+            x: center.x - radius,
+            y: center.y - radius,
+            z: center.z - radius,
+        },
+        max_bound: Vector3 {
+            x: center.x + radius,
+            y: center.y + radius,
+            z: center.z + radius,
+        },
+    }
 }
 
 impl Primitive for Sphere {
@@ -41,5 +68,9 @@ impl Primitive for Sphere {
             distance: t0,
             material: &self.material,
         })
+    }
+
+    fn fast_intersect(&self, ray: &Ray) -> bool {
+        self.aabb.intersect(ray)
     }
 }
