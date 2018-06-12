@@ -14,7 +14,7 @@ use argparse::{ArgumentParser, Store, Print, Parse};
 use std::path::PathBuf;
 use std::time::Instant;
 use scenes::{scene_lookup, Scene};
-use renderer::Renderer;
+use renderer::{Renderer, SuperSamplingMode};
 use image::save_buffer;
 
 fn main() {
@@ -25,6 +25,7 @@ fn main() {
     let mut height: usize = 0;
     let mut fov: f64 = 0.0;
     let mut workers = num_cpus::get();
+    let mut samples_arg: u8 = 1;
 
     {
         let mut parser = ArgumentParser::new();
@@ -49,6 +50,8 @@ fn main() {
             .required();
         parser.refer(&mut workers)
             .add_option(&["-t", "--threads"], Store, "The number of worker threads to spawn");
+        parser.refer(&mut samples_arg)
+            .add_option(&["--samples"], Store, "The number of samples per pixel");
         parser.parse_args_or_exit();
     }
 
@@ -63,8 +66,15 @@ fn main() {
         panic!("No primitives in {}", scene_name);
     }
 
+    let samples = match samples_arg {
+        1 => SuperSamplingMode::SSAAX1,
+        4 => SuperSamplingMode::SSAAX4,
+        16 => SuperSamplingMode::SSAAX16,
+        _ => panic!("Unsupported SSAA mode {}", samples_arg),
+    };
+
     let t = Instant::now();
-    let renderer = Renderer::new(width, height, workers, scene, fov);
+    let renderer = Renderer::new(width, height, workers, scene, fov, samples);
     let frame = renderer.render();
 
     println!("Rendered in {}ms",

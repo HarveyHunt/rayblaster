@@ -25,18 +25,29 @@ pub struct Renderer {
     workers: usize,
     scene: Scene,
     fov: f64,
+    samples: SuperSamplingMode,
     aspect_ratio: f64,
     scale: f64,
 }
 
+// 1: (0.5, 0.5)
+// 4: (0.25, 0.25), (0.75, 0.25) (0.25, 0.75) (0.75, 0.75)
+#[derive(Debug, Copy, Clone)]
+pub enum SuperSamplingMode {
+    SSAAX1 = 1,
+    SSAAX4 = 4,
+    SSAAX16 = 16
+}
+
 impl Renderer {
-    pub fn new(width: usize, height: usize, workers: usize, scene: Scene, fov: f64) -> Renderer {
+    pub fn new(width: usize, height: usize, workers: usize, scene: Scene, fov: f64, samples: SuperSamplingMode) -> Renderer {
         Renderer {
             width: width,
             height: height,
             workers: workers,
             scene: scene,
             fov: fov,
+            samples: samples,
             aspect_ratio: (width / height) as f64,
             scale: (fov.to_radians() * 0.5).tan(),
         }
@@ -76,19 +87,31 @@ impl Renderer {
         let inv_width = 1.0 / self.width as f64;
         let inv_height = 1.0 / self.height as f64;
         let mut pixel = 0;
+        let mut sample_index = 0;
+        let mut sample_buf: Vec<Vector3<f64>> = vec![Vector3::new(0.0,0.0,0.0); self.samples as usize];
 
         for y in 0..chunk_height {
             for x in 0..self.width {
-                let cx = (2.0 * ((x as f64 + 0.5) * inv_width) - 1.0) * self.aspect_ratio *
-                         self.scale;
-                let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + 0.5) * inv_height)) * self.scale;
+                sample_index = 0;
+                for x_sample in [0.25, 0.75].iter() {
+                    for y_sample in [0.25, 0.75].iter() {
+                        let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0) * self.aspect_ratio * self.scale;
+                        let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + y_sample ) * inv_height)) * self.scale;
 
-                let dir = Vector3::new(cx, cy, -1.0).normalize();
-                let ray = Ray::from_origin(dir, MAX_DEPTH, RayType::Primary);
+                        let dir = Vector3::new(cx, cy, -1.0).normalize();
+                        let ray = Ray::from_origin(dir, MAX_DEPTH, RayType::Primary);
 
-                let colour = self.trace(ray);
+                        sample_buf[sample_index] = self.trace(ray);
+                        sample_index += 1;
+                    }
+                }
 
-                chunk[pixel] = clamp_colour(colour);
+                let sum_col = sample_buf.iter().fold(Vector3::new(0.0,0.0,0.0), |sum, val| sum + val);
+
+                chunk[pixel] = clamp_colour(Vector3::new(
+                        sum_col.x / (self.samples as u32) as f64,
+                        sum_col.y / (self.samples as u32) as f64,
+                        sum_col.z / (self.samples as u32) as f64));
                 pixel += 1;
             }
         }
