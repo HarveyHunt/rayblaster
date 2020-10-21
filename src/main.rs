@@ -84,7 +84,7 @@ fn main() -> Result<(), Error> {
 
     println!(
         "Rendered in {}ms",
-        (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64
+        (t.elapsed().as_secs() * 1000) + t.elapsed().subsec_millis() as u64
     );
 
     for (i, pixel) in frame.iter().enumerate() {

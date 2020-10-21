@@ -36,8 +36,8 @@ impl Primitive for Sphere {
         let normal = pos - self.center;
 
         Some(Intersection {
-            pos: pos,
-            normal: normal,
+            pos,
+            normal,
             distance: t0,
             material: &self.material,
         })
