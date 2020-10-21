@@ -1,11 +1,11 @@
+use crate::lights::{Light, SphericalLight};
+use crate::materials::SpecularMaterial;
+use crate::primitives::{Plane, Primitive, Sphere};
+use crate::scenes::Scene;
 use cgmath::Vector3;
-use scenes::Scene;
-use materials::SpecularMaterial;
-use primitives::{Primitive, Sphere, Plane};
-use lights::{Light, SphericalLight};
 
 pub fn get_scene() -> Scene {
-    let mut prims: Vec<Box<Primitive + Sync>> = Vec::new();
+    let mut prims: Vec<Box<dyn Primitive + Sync>> = Vec::new();
 
     prims.push(Box::new(Plane {
         center: Vector3::new(0.0, -5.0, 0.0),
@@ -67,7 +67,7 @@ pub fn get_scene() -> Scene {
         }),
     }));
 
-    let mut ls: Vec<Box<Light + Sync>> = Vec::new();
+    let mut ls: Vec<Box<dyn Light + Sync>> = Vec::new();
     ls.push(Box::new(SphericalLight {
         center: Vector3::new(25.0, 20.0, 10.0),
         colour: Vector3::new(1.0, 1.0, 1.0),

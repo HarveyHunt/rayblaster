@@ -1,5 +1,5 @@
-use materials::Material;
-use cgmath::{Vector3, InnerSpace};
+use crate::materials::Material;
+use cgmath::{InnerSpace, Vector3};
 
 #[derive(Clone)]
 pub struct SpecularMaterial {
@@ -11,11 +11,12 @@ pub struct SpecularMaterial {
 }
 
 impl Material for SpecularMaterial {
-    fn sample(&self,
-              hit_normal: Vector3<f64>,
-              ray_dir: Vector3<f64>,
-              l: Vector3<f64>)
-              -> Vector3<f64> {
+    fn sample(
+        &self,
+        hit_normal: Vector3<f64>,
+        ray_dir: Vector3<f64>,
+        l: Vector3<f64>,
+    ) -> Vector3<f64> {
         let half = (l + -ray_dir).normalize();
 
         let diffuse = if hit_normal.dot(l) > 0.0 {

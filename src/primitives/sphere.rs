@@ -1,12 +1,12 @@
-use materials::Material;
-use cgmath::{Vector3, InnerSpace};
-use primitives::Primitive;
-use renderer::{Ray, Intersection};
+use crate::materials::Material;
+use crate::primitives::Primitive;
+use crate::renderer::{Intersection, Ray};
+use cgmath::{InnerSpace, Vector3};
 
 pub struct Sphere {
     pub center: Vector3<f64>,
     pub radius: f64,
-    pub material: Box<Material + Sync>,
+    pub material: Box<dyn Material + Sync>,
 }
 
 impl Primitive for Sphere {

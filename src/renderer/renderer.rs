@@ -1,11 +1,11 @@
-use scenes::Scene;
+use crate::primitives::Primitive;
+use crate::renderer::{Intersection, Ray, RayType};
+use crate::scenes::Scene;
+use cgmath::{ElementWise, InnerSpace, Vector3};
 use crossbeam;
-use cgmath::{Vector3, InnerSpace, ElementWise};
-use renderer::{Ray, RayType, Intersection};
-use primitives::Primitive;
+use std::cmp::{max, min, Ord};
 use std::f64::INFINITY;
 use std::iter::repeat;
-use std::cmp::{max, min, Ord};
 
 const MAX_DEPTH: u32 = 5;
 
@@ -14,9 +14,11 @@ fn clamp<T: Ord>(val: T, minimum: T, maximum: T) -> T {
 }
 
 fn clamp_colour(colour: Vector3<f64>) -> Vector3<u8> {
-    Vector3::new(clamp((colour.x * 255.0) as u32, 0, u8::max_value() as u32) as u8,
-                 clamp((colour.y * 255.0) as u32, 0, u8::max_value() as u32) as u8,
-                 clamp((colour.z * 255.0) as u32, 0, u8::max_value() as u32) as u8)
+    Vector3::new(
+        clamp((colour.x * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+        clamp((colour.y * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+        clamp((colour.z * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+    )
 }
 
 pub struct Renderer {
@@ -36,11 +38,18 @@ pub struct Renderer {
 pub enum SuperSamplingMode {
     SSAAX1 = 1,
     SSAAX4 = 4,
-    SSAAX16 = 16
+    SSAAX16 = 16,
 }
 
 impl Renderer {
-    pub fn new(width: usize, height: usize, workers: usize, scene: Scene, fov: f64, samples: SuperSamplingMode) -> Renderer {
+    pub fn new(
+        width: usize,
+        height: usize,
+        workers: usize,
+        scene: Scene,
+        fov: f64,
+        samples: SuperSamplingMode,
+    ) -> Renderer {
         Renderer {
             width: width,
             height: height,
@@ -57,8 +66,9 @@ impl Renderer {
         // Split in width factored chunks in order to remain cache friendly.
         // FIXME: This will break with weird sizes that cause a fractional
         // chunk_size.
-        let mut frame: Vec<Vector3<u8>> =
-            repeat(Vector3::new(0, 0, 0)).take(self.width * self.height).collect();
+        let mut frame: Vec<Vector3<u8>> = repeat(Vector3::new(0, 0, 0))
+            .take(self.width * self.height)
+            .collect();
 
         println!("Rendering using {} workers", self.workers);
 
@@ -87,16 +97,20 @@ impl Renderer {
         let inv_width = 1.0 / self.width as f64;
         let inv_height = 1.0 / self.height as f64;
         let mut pixel = 0;
-        let mut sample_index = 0;
-        let mut sample_buf: Vec<Vector3<f64>> = vec![Vector3::new(0.0,0.0,0.0); self.samples as usize];
+        let mut sample_index;
+        let mut sample_buf: Vec<Vector3<f64>> =
+            vec![Vector3::new(0.0, 0.0, 0.0); self.samples as usize];
 
         for y in 0..chunk_height {
             for x in 0..self.width {
                 sample_index = 0;
                 for x_sample in [0.25, 0.75].iter() {
                     for y_sample in [0.25, 0.75].iter() {
-                        let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0) * self.aspect_ratio * self.scale;
-                        let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + y_sample ) * inv_height)) * self.scale;
+                        let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0)
+                            * self.aspect_ratio
+                            * self.scale;
+                        let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + y_sample) * inv_height))
+                            * self.scale;
 
                         let dir = Vector3::new(cx, cy, -1.0).normalize();
                         let ray = Ray::from_origin(dir, MAX_DEPTH, RayType::Primary);
@@ -106,12 +120,15 @@ impl Renderer {
                     }
                 }
 
-                let sum_col = sample_buf.iter().fold(Vector3::new(0.0,0.0,0.0), |sum, val| sum + val);
+                let sum_col = sample_buf
+                    .iter()
+                    .fold(Vector3::new(0.0, 0.0, 0.0), |sum, val| sum + val);
 
                 chunk[pixel] = clamp_colour(Vector3::new(
-                        sum_col.x / (self.samples as u32) as f64,
-                        sum_col.y / (self.samples as u32) as f64,
-                        sum_col.z / (self.samples as u32) as f64));
+                    sum_col.x / (self.samples as u32) as f64,
+                    sum_col.y / (self.samples as u32) as f64,
+                    sum_col.z / (self.samples as u32) as f64,
+                ));
                 pixel += 1;
             }
         }
@@ -119,34 +136,37 @@ impl Renderer {
 
     pub fn trace(&self, ray: Ray) -> Vector3<f64> {
         let colour = Vector3::new(0.0, 0.0, 0.0);
-        let prim: &Box<Primitive + Sync>;
+        let _prim: &Box<dyn Primitive + Sync>;
         let int: Intersection;
 
         match self.trace_primary(ray) {
             Some((i, p)) => {
                 int = i;
-                prim = p
+                _prim = p
             }
             None => return colour,
         };
 
         let col: Vector3<f64> =
-            self.scene.lights.iter().fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
-                let l = (light.center() - int.pos).normalize();
-                // Add a bias to prevent shadow acne.
-                // TODO: Experiment to find a good value.
-                let bias = Vector3::new(1e-6, 1e-6, 1e-6);
-                let shadow_ray = Ray::new(int.pos + bias, l, 1, RayType::Shadow);
+            self.scene
+                .lights
+                .iter()
+                .fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
+                    let l = (light.center() - int.pos).normalize();
+                    // Add a bias to prevent shadow acne.
+                    // TODO: Experiment to find a good value.
+                    let bias = Vector3::new(1e-6, 1e-6, 1e-6);
+                    let shadow_ray = Ray::new(int.pos + bias, l, 1, RayType::Shadow);
 
-                if !self.trace_shadow(shadow_ray) {
-                    acc +
-                    int.material
-                        .sample(int.normal.normalize(), ray.direction, l)
-                        .mul_element_wise(light.colour())
-                } else {
-                    acc
-                }
-            });
+                    if !self.trace_shadow(shadow_ray) {
+                        acc + int
+                            .material
+                            .sample(int.normal.normalize(), ray.direction, l)
+                            .mul_element_wise(light.colour())
+                    } else {
+                        acc
+                    }
+                });
 
         col
     }
@@ -155,15 +175,15 @@ impl Renderer {
     // primitive we are checking shadows for.
     fn trace_shadow(&self, ray: Ray) -> bool {
         match self.trace_primary(ray) {
-            Some((int, prim)) => true,
+            Some((_int, _prim)) => true,
             None => false,
         }
     }
 
     // TODO: All of this boxiness feels gross...
-    fn trace_primary(&self, ray: Ray) -> Option<(Intersection, &Box<Primitive + Sync>)> {
+    fn trace_primary(&self, ray: Ray) -> Option<(Intersection, &Box<dyn Primitive + Sync>)> {
         let mut tnear: f64 = INFINITY;
-        let mut result: Option<(Intersection, &Box<Primitive + Sync>)> = None;
+        let mut result: Option<(Intersection, &Box<dyn Primitive + Sync>)> = None;
 
         for prim in &self.scene.primitives {
             if let Some(int) = prim.intersect(&ray) {

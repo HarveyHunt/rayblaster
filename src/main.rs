@@ -1,21 +1,15 @@
-extern crate cgmath;
-extern crate crossbeam;
-extern crate image;
-extern crate num_cpus;
-extern crate argparse;
-
-mod renderer;
-mod primitives;
 mod lights;
-mod scenes;
 mod materials;
+mod primitives;
+mod renderer;
+mod scenes;
 
-use argparse::{ArgumentParser, Store, Print, Parse};
+use argparse::{ArgumentParser, Parse, Print, Store};
+use image::save_buffer;
+use renderer::{Renderer, SuperSamplingMode};
+use scenes::{scene_lookup, Scene};
 use std::path::PathBuf;
 use std::time::Instant;
-use scenes::{scene_lookup, Scene};
-use renderer::{Renderer, SuperSamplingMode};
-use image::save_buffer;
 
 fn main() {
     let scene: Scene;
@@ -30,28 +24,41 @@ fn main() {
     {
         let mut parser = ArgumentParser::new();
         parser.set_description("A raytracer written in Rust");
-        parser.add_option(&["-v", "--version"],
-                          Print(format!("rayblaster: v{}", env!("CARGO_PKG_VERSION"))),
-                          "Show version");
-        parser.refer(&mut image_path)
+        parser.add_option(
+            &["-v", "--version"],
+            Print(format!("rayblaster: v{}", env!("CARGO_PKG_VERSION"))),
+            "Show version",
+        );
+        parser
+            .refer(&mut image_path)
             .add_option(&["-o", "--output"], Parse, "Place the output into <file>")
             .required();
-        parser.refer(&mut scene_name)
+        parser
+            .refer(&mut scene_name)
             .add_option(&["-s", "--scene"], Store, "The scene to render")
             .required();
-        parser.refer(&mut width)
+        parser
+            .refer(&mut width)
             .add_option(&["-w", "--width"], Store, "The width of the output image")
             .required();
-        parser.refer(&mut height)
+        parser
+            .refer(&mut height)
             .add_option(&["-h", "--height"], Store, "The height of the output image")
             .required();
-        parser.refer(&mut fov)
+        parser
+            .refer(&mut fov)
             .add_option(&["-f", "--fov"], Store, "The fov of the output image")
             .required();
-        parser.refer(&mut workers)
-            .add_option(&["-t", "--threads"], Store, "The number of worker threads to spawn");
-        parser.refer(&mut samples_arg)
-            .add_option(&["--samples"], Store, "The number of samples per pixel");
+        parser.refer(&mut workers).add_option(
+            &["-t", "--threads"],
+            Store,
+            "The number of worker threads to spawn",
+        );
+        parser.refer(&mut samples_arg).add_option(
+            &["--samples"],
+            Store,
+            "The number of samples per pixel",
+        );
         parser.parse_args_or_exit();
     }
 
@@ -77,8 +84,10 @@ fn main() {
     let renderer = Renderer::new(width, height, workers, scene, fov, samples);
     let frame = renderer.render();
 
-    println!("Rendered in {}ms",
-             (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64);
+    println!(
+        "Rendered in {}ms",
+        (t.elapsed().as_secs() * 1000) + (t.elapsed().subsec_nanos() / 1000000) as u64
+    );
 
     for (i, pixel) in frame.iter().enumerate() {
         buffer[i * 3] = pixel.x;
@@ -86,9 +95,11 @@ fn main() {
         buffer[i * 3 + 2] = pixel.z;
     }
 
-    save_buffer(image_path,
-                &buffer,
-                width as u32,
-                height as u32,
-                image::RGB(8));
+    save_buffer(
+        image_path,
+        &buffer,
+        width as u32,
+        height as u32,
+        image::RGB(8),
+    );
 }

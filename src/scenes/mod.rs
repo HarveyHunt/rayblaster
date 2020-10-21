@@ -1,11 +1,11 @@
 pub mod spheres;
 
-use primitives::Primitive;
-use lights::Light;
+use crate::lights::Light;
+use crate::primitives::Primitive;
 
 pub struct Scene {
-    pub lights: Vec<Box<Light + Sync>>,
-    pub primitives: Vec<Box<Primitive + Sync>>,
+    pub lights: Vec<Box<dyn Light + Sync>>,
+    pub primitives: Vec<Box<dyn Primitive + Sync>>,
 }
 
 pub fn scene_lookup(name: &str) -> Result<Scene, &'static str> {

@@ -1,5 +1,5 @@
+use crate::lights::Light;
 use cgmath::Vector3;
-use lights::Light;
 
 pub struct SphericalLight {
     pub center: Vector3<f64>,
