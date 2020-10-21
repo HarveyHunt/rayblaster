@@ -1,5 +1,7 @@
 pub mod spheres;
 
+use anyhow::{anyhow, Error};
+
 use crate::lights::Light;
 use crate::primitives::Primitive;
 
@@ -8,9 +10,9 @@ pub struct Scene {
     pub primitives: Vec<Box<dyn Primitive + Sync>>,
 }
 
-pub fn scene_lookup(name: &str) -> Result<Scene, &'static str> {
+pub fn scene_lookup(name: &str) -> Result<Scene, Error> {
     match name {
         "spheres" => Ok(spheres::get_scene()),
-        _ => Err("Failed to load scene"),
+        _ => Err(anyhow!("Failed to load scene: {}", name)),
     }
 }

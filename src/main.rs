@@ -4,15 +4,15 @@ mod primitives;
 mod renderer;
 mod scenes;
 
+use anyhow::{anyhow, Context, Error};
 use argparse::{ArgumentParser, Parse, Print, Store};
 use image::save_buffer;
 use renderer::{Renderer, SuperSamplingMode};
-use scenes::{scene_lookup, Scene};
+use scenes::scene_lookup;
 use std::path::PathBuf;
 use std::time::Instant;
 
-fn main() {
-    let scene: Scene;
+fn main() -> Result<(), Error> {
     let mut image_path = PathBuf::new();
     let mut scene_name = String::new();
     let mut width: usize = 0;
@@ -64,20 +64,18 @@ fn main() {
 
     let mut buffer = vec![0; width * height * 3].into_boxed_slice();
 
-    match scene_lookup(&scene_name) {
-        Ok(s) => scene = s,
-        Err(_) => panic!("Failed to load scene {}", scene_name),
-    }
+    let scene =
+        scene_lookup(&scene_name).with_context(|| anyhow!("No primitives in {}", scene_name))?;
 
     if scene.primitives.is_empty() {
-        panic!("No primitives in {}", scene_name);
+        return Err(anyhow!("Empty scene: {}", scene_name));
     }
 
     let samples = match samples_arg {
         1 => SuperSamplingMode::SSAAX1,
         4 => SuperSamplingMode::SSAAX4,
         16 => SuperSamplingMode::SSAAX16,
-        _ => panic!("Unsupported SSAA mode {}", samples_arg),
+        _ => return Err(anyhow!("Unsupported SSAA mode {}", samples_arg)),
     };
 
     let t = Instant::now();
@@ -101,5 +99,6 @@ fn main() {
         width as u32,
         height as u32,
         image::RGB(8),
-    );
+    )
+    .map_err(Error::from)
 }
