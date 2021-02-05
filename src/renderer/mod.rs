@@ -11,9 +11,7 @@ use crate::primitives::Primitive;
 use crate::scenes::Scene;
 
 pub use self::intersection::Intersection;
-pub use self::ray::{Ray, RayType};
-
-const MAX_DEPTH: u32 = 5;
+pub use self::ray::Ray;
 
 fn clamp<T: Ord>(val: T, minimum: T, maximum: T) -> T {
     max(minimum, min(val, maximum))
@@ -32,7 +30,6 @@ pub struct Renderer {
     height: usize,
     workers: usize,
     scene: Scene,
-    fov: f64,
     samples: SuperSamplingMode,
     aspect_ratio: f64,
     scale: f64,
@@ -45,6 +42,18 @@ pub enum SuperSamplingMode {
     SSAAX1 = 1,
     SSAAX4 = 4,
     SSAAX16 = 16,
+}
+
+impl SuperSamplingMode {
+    // TODO: Return an iterator
+    pub fn sample_coords(&self) -> &[f64] {
+        match self {
+            SuperSamplingMode::SSAAX1 => &[0.5],
+            SuperSamplingMode::SSAAX4 => &[0.25, 0.75],
+            // TODO: use the correct values
+            SuperSamplingMode::SSAAX16 => &[0.25, 0.75],
+        }
+    }
 }
 
 impl Renderer {
@@ -61,7 +70,6 @@ impl Renderer {
             height,
             workers,
             scene,
-            fov,
             samples,
             aspect_ratio: (width / height) as f64,
             scale: (fov.to_radians() * 0.5).tan(),
@@ -110,8 +118,8 @@ impl Renderer {
         for y in 0..chunk_height {
             for x in 0..self.width {
                 sample_index = 0;
-                for x_sample in [0.25, 0.75].iter() {
-                    for y_sample in [0.25, 0.75].iter() {
+                for x_sample in self.samples.sample_coords().iter() {
+                    for y_sample in self.samples.sample_coords().iter() {
                         let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0)
                             * self.aspect_ratio
                             * self.scale;
@@ -119,7 +127,7 @@ impl Renderer {
                             * self.scale;
 
                         let dir = Vector3::new(cx, cy, -1.0).normalize();
-                        let ray = Ray::from_origin(dir, MAX_DEPTH, RayType::Primary);
+                        let ray = Ray::from_origin(dir);
 
                         sample_buf[sample_index] = self.trace(ray);
                         sample_index += 1;
@@ -160,7 +168,7 @@ impl Renderer {
                     // Add a bias to prevent shadow acne.
                     // TODO: Experiment to find a good value.
                     let bias = Vector3::new(1e-6, 1e-6, 1e-6);
-                    let shadow_ray = Ray::new(int.pos + bias, l, 1, RayType::Shadow);
+                    let shadow_ray = Ray::new(int.pos + bias, l);
 
                     if !self.trace_shadow(shadow_ray) {
                         acc + int

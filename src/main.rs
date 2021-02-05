@@ -8,6 +8,7 @@ use anyhow::{anyhow, Context, Error};
 use argparse::{ArgumentParser, Parse, Print, Store};
 use image::save_buffer;
 use renderer::{Renderer, SuperSamplingMode};
+
 use scenes::scene_lookup;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -79,6 +80,7 @@ fn main() -> Result<(), Error> {
     };
 
     let t = Instant::now();
+
     let renderer = Renderer::new(width, height, workers, scene, fov, samples);
     let frame = renderer.render();
 
@@ -92,7 +94,6 @@ fn main() -> Result<(), Error> {
         buffer[i * 3 + 1] = pixel.y;
         buffer[i * 3 + 2] = pixel.z;
     }
-
     save_buffer(
         image_path,
         &buffer,
