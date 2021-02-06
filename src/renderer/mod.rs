@@ -17,11 +17,11 @@ fn clamp<T: Ord>(val: T, minimum: T, maximum: T) -> T {
     max(minimum, min(val, maximum))
 }
 
-fn clamp_colour(colour: Vector3<f64>) -> Vector3<u8> {
+fn clamp_colour(r: f64, g: f64, b: f64) -> Vector3<u8> {
     Vector3::new(
-        clamp((colour.x * 255.0) as u32, 0, u8::max_value() as u32) as u8,
-        clamp((colour.y * 255.0) as u32, 0, u8::max_value() as u32) as u8,
-        clamp((colour.z * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+        clamp((r * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+        clamp((g * 255.0) as u32, 0, u8::max_value() as u32) as u8,
+        clamp((b * 255.0) as u32, 0, u8::max_value() as u32) as u8,
     )
 }
 
@@ -45,13 +45,12 @@ pub enum SuperSamplingMode {
 }
 
 impl SuperSamplingMode {
-    // TODO: Return an iterator
-    pub fn sample_coords(&self) -> &[f64] {
+    pub fn sample_coords(&self) -> std::slice::Iter<'_, f64> {
         match self {
-            SuperSamplingMode::SSAAX1 => &[0.5],
-            SuperSamplingMode::SSAAX4 => &[0.25, 0.75],
+            SuperSamplingMode::SSAAX1 => [0.5].iter(),
+            SuperSamplingMode::SSAAX4 => [0.25, 0.75].iter(),
             // TODO: use the correct values
-            SuperSamplingMode::SSAAX16 => &[0.25, 0.75],
+            SuperSamplingMode::SSAAX16 => [0.25, 0.75].iter(),
         }
     }
 }
@@ -118,11 +117,12 @@ impl Renderer {
         for y in 0..chunk_height {
             for x in 0..self.width {
                 sample_index = 0;
-                for x_sample in self.samples.sample_coords().iter() {
-                    for y_sample in self.samples.sample_coords().iter() {
+                for x_sample in self.samples.sample_coords() {
+                    for y_sample in self.samples.sample_coords() {
                         let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0)
                             * self.aspect_ratio
                             * self.scale;
+
                         let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + y_sample) * inv_height))
                             * self.scale;
 
@@ -136,13 +136,10 @@ impl Renderer {
 
                 let sum_col = sample_buf
                     .iter()
-                    .fold(Vector3::new(0.0, 0.0, 0.0), |sum, val| sum + val);
+                    .fold(Vector3::new(0.0, 0.0, 0.0), |sum, val| sum + val)
+                    / (self.samples as u32) as f64;
 
-                chunk[pixel] = clamp_colour(Vector3::new(
-                    sum_col.x / (self.samples as u32) as f64,
-                    sum_col.y / (self.samples as u32) as f64,
-                    sum_col.z / (self.samples as u32) as f64,
-                ));
+                chunk[pixel] = clamp_colour(sum_col.x, sum_col.y, sum_col.z);
                 pixel += 1;
             }
         }
