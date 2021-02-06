@@ -103,9 +103,6 @@ impl Renderer {
     }
 
     pub fn render_chunk(&self, chunk: &mut [Vector3<u8>], chunk_height: usize, y_offset: usize) {
-        // Multiply is cheaper than divide, so use the inverses in the main loop.
-        let inv_width = 1.0 / self.width as f64;
-        let inv_height = 1.0 / self.height as f64;
         let mut pixel = 0;
         let mut sample_index;
         let mut sample_buf: Vec<Vector3<f64>> = vec![Vector3::zero(); self.samples as usize];
@@ -115,11 +112,12 @@ impl Renderer {
                 sample_index = 0;
                 for x_sample in self.samples.sample_coords() {
                     for y_sample in self.samples.sample_coords() {
-                        let cx = (2.0 * (((x as f64 + x_sample) as f64) * inv_width) - 1.0)
+                        let cx = (2.0 * (((x as f64 + x_sample) as f64) / self.width as f64) - 1.0)
                             * self.aspect_ratio
                             * self.scale;
 
-                        let cy = (1.0 - 2.0 * (((y + y_offset) as f64 + y_sample) * inv_height))
+                        let cy = (1.0
+                            - 2.0 * (((y + y_offset) as f64 + y_sample) / self.height as f64))
                             * self.scale;
 
                         let dir = Vector3::new(cx, cy, -1.0).normalize();
