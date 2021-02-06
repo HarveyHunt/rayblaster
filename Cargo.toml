@@ -6,9 +6,9 @@ authors = ["Harvey Hunt <harveyhuntnexus@gmail.com>"]
 
 [dependencies]
 cgmath = "0.18.0"
-image = "0.10.0"
-crossbeam = "0.3.0"
-num_cpus = "1.6.2"
-anyhow = "1.0.33"
+image = "0.10.4"
+crossbeam = "0.3.2"
+num_cpus = "1.13.0"
+anyhow = "1.0.38"
 structopt = "0.3.21"
 clap = "2.33.3"

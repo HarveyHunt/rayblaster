@@ -13,6 +13,9 @@ use crate::scenes::Scene;
 pub use self::intersection::Intersection;
 pub use self::ray::Ray;
 
+// TODO: Experiment to find a good value.
+const BIAS: Vector3<f64> = Vector3::new(1e-6, 1e-6, 1e-6);
+
 fn clamp<T: Ord>(val: T, minimum: T, maximum: T) -> T {
     max(minimum, min(val, maximum))
 }
@@ -157,9 +160,7 @@ impl Renderer {
             .fold(Vector3::zero(), |acc, light| {
                 let l = (light.center() - int.pos).normalize();
                 // Add a bias to prevent shadow acne.
-                // TODO: Experiment to find a good value.
-                let bias = Vector3::new(1e-6, 1e-6, 1e-6);
-                let shadow_ray = Ray::new(int.pos + bias, l);
+                let shadow_ray = Ray::new(int.pos + BIAS, l);
 
                 if !self.trace_shadow(shadow_ray) {
                     acc + int
