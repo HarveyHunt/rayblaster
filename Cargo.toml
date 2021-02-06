@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["Harvey Hunt <harveyhuntnexus@gmail.com>"]
 
 [dependencies]
-cgmath = "0.9.1"
+cgmath = "0.18.0"
 image = "0.10.0"
 crossbeam = "0.3.0"
 num_cpus = "1.6.2"

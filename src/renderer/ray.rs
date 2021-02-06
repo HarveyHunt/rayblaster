@@ -1,4 +1,4 @@
-use cgmath::Vector3;
+use cgmath::{Vector3, Zero};
 
 #[derive(Clone, Copy)]
 pub struct Ray {
@@ -13,7 +13,7 @@ impl Ray {
 
     pub fn from_origin(direction: Vector3<f64>) -> Self {
         Self {
-            origin: Vector3::new(0.0, 0.0, 0.0),
+            origin: Vector3::zero(),
             direction,
         }
     }

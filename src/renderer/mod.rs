@@ -5,7 +5,7 @@ use std::cmp::{max, min, Ord};
 use std::f64::INFINITY;
 use std::iter::repeat;
 
-use cgmath::{ElementWise, InnerSpace, Vector3};
+use cgmath::{ElementWise, InnerSpace, Vector3, Zero};
 
 use crate::primitives::Primitive;
 use crate::scenes::Scene;
@@ -76,7 +76,7 @@ impl Renderer {
         // Split in width factored chunks in order to remain cache friendly.
         // FIXME: This will break with weird sizes that cause a fractional
         // chunk_size.
-        let mut frame: Vec<Vector3<u8>> = repeat(Vector3::new(0, 0, 0))
+        let mut frame: Vec<Vector3<u8>> = repeat(Vector3::zero())
             .take(self.width * self.height)
             .collect();
 
@@ -108,8 +108,7 @@ impl Renderer {
         let inv_height = 1.0 / self.height as f64;
         let mut pixel = 0;
         let mut sample_index;
-        let mut sample_buf: Vec<Vector3<f64>> =
-            vec![Vector3::new(0.0, 0.0, 0.0); self.samples as usize];
+        let mut sample_buf: Vec<Vector3<f64>> = vec![Vector3::zero(); self.samples as usize];
 
         for y in 0..chunk_height {
             for x in 0..self.width {
@@ -133,7 +132,7 @@ impl Renderer {
 
                 let sum_col = sample_buf
                     .iter()
-                    .fold(Vector3::new(0.0, 0.0, 0.0), |sum, val| sum + val)
+                    .fold(Vector3::zero(), |sum, val| sum + val)
                     / (self.samples as u32) as f64;
 
                 chunk[pixel] = clamp_colour(sum_col.x, sum_col.y, sum_col.z);
@@ -143,7 +142,7 @@ impl Renderer {
     }
 
     pub fn trace(&self, ray: Ray) -> Vector3<f64> {
-        let colour = Vector3::new(0.0, 0.0, 0.0);
+        let colour = Vector3::zero();
         let int: Intersection;
 
         match self.trace_primary(ray) {
@@ -153,26 +152,26 @@ impl Renderer {
             None => return colour,
         };
 
-        let col: Vector3<f64> =
-            self.scene
-                .lights
-                .iter()
-                .fold(Vector3::new(0.0, 0.0, 0.0), |acc, light| {
-                    let l = (light.center() - int.pos).normalize();
-                    // Add a bias to prevent shadow acne.
-                    // TODO: Experiment to find a good value.
-                    let bias = Vector3::new(1e-6, 1e-6, 1e-6);
-                    let shadow_ray = Ray::new(int.pos + bias, l);
+        let col: Vector3<f64> = self
+            .scene
+            .lights
+            .iter()
+            .fold(Vector3::zero(), |acc, light| {
+                let l = (light.center() - int.pos).normalize();
+                // Add a bias to prevent shadow acne.
+                // TODO: Experiment to find a good value.
+                let bias = Vector3::new(1e-6, 1e-6, 1e-6);
+                let shadow_ray = Ray::new(int.pos + bias, l);
 
-                    if !self.trace_shadow(shadow_ray) {
-                        acc + int
-                            .material
-                            .sample(int.normal.normalize(), ray.direction, l)
-                            .mul_element_wise(light.colour())
-                    } else {
-                        acc
-                    }
-                });
+                if !self.trace_shadow(shadow_ray) {
+                    acc + int
+                        .material
+                        .sample(int.normal.normalize(), ray.direction, l)
+                        .mul_element_wise(light.colour())
+                } else {
+                    acc
+                }
+            });
 
         col
     }

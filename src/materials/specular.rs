@@ -1,5 +1,5 @@
 use crate::materials::Material;
-use cgmath::{InnerSpace, Vector3};
+use cgmath::{InnerSpace, Vector3, Zero};
 
 #[derive(Clone)]
 pub struct SpecularMaterial {
@@ -22,7 +22,7 @@ impl Material for SpecularMaterial {
         let diffuse = if hit_normal.dot(l) > 0.0 {
             self.diff_colour * self.k_diff * hit_normal.dot(l)
         } else {
-            Vector3::new(0.0, 0.0, 0.0)
+            Vector3::zero()
         };
 
         let specular = self.spec_colour * self.k_spec * hit_normal.dot(half).powf(self.shininess);
