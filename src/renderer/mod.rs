@@ -35,8 +35,6 @@ pub struct Renderer {
     scale: f64,
 }
 
-// 1: (0.5, 0.5)
-// 4: (0.25, 0.25), (0.75, 0.25) (0.25, 0.75) (0.75, 0.75)
 #[derive(Debug, Copy, Clone)]
 pub enum SuperSamplingMode {
     SSAAX1 = 1,
@@ -49,8 +47,7 @@ impl SuperSamplingMode {
         match self {
             SuperSamplingMode::SSAAX1 => [0.5].iter(),
             SuperSamplingMode::SSAAX4 => [0.25, 0.75].iter(),
-            // TODO: use the correct values
-            SuperSamplingMode::SSAAX16 => [0.25, 0.75].iter(),
+            SuperSamplingMode::SSAAX16 => [0.125, 0.375, 0.625, 0.875].iter(),
         }
     }
 }
